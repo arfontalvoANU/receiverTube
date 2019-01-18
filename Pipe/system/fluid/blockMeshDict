@@ -1,0 +1,107 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  6
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 0.001;
+
+angledeg	45.0;
+rint		15.0;
+pipel		100.0;
+
+anglerad	#calc "degToRad($angledeg)";
+maxY		#calc "$rint*cos($anglerad)";
+minY		#calc "-1.0*$rint*cos($anglerad)";
+maxZ		#calc "$rint*cos($anglerad)";
+minZ		#calc "-1.0*$rint*cos($anglerad)";
+rintneg	#calc "-1.0*$rint";
+
+vertices
+(
+    (0.0 $minY $minZ)	//0
+    ($pipel $minY $minZ)//1
+    ($pipel $maxY $minZ)//2
+    (0.0 $maxY $minZ)	//3
+
+    (0.0 $minY $maxZ)	//4
+    ($pipel $minY $maxZ)//5
+    ($pipel $maxY $maxZ)//6
+    (0.0 $maxY $maxZ)	//7
+
+    (0.0 0.0 0.0)	//8
+    ($pipel 0.0 0.0)	//9
+);
+
+blocks
+(
+    hex (0 3 8 8 1 2 9 9) (10 10 50) simpleGrading (1 1 1) // (tangential radial axial) simpleGrading (1 ((0.05 0.2 1) (0.95 0.8 1)) 1)
+    hex (4 0 8 8 5 1 9 9) (10 10 50) simpleGrading (1 1 1) // (tangential radial axial) simpleGrading (1 ((0.05 0.2 1) (0.95 0.8 1)) 1)
+);
+
+edges
+(
+    arc 4 0 (0 $rintneg 0)
+    arc 0 3 (0 0 $rintneg)
+    arc 5 1 ($pipel $rintneg 0)
+    arc 1 2 ($pipel 0 $rintneg)
+);
+
+boundary
+(
+    inlet
+    {
+        type patch;
+        faces
+        (
+            (4 8 8 0)
+            (0 8 8 3)
+        );
+    }
+    outlet
+    {
+        type patch;
+        faces
+        (
+            (5 9 9 1)
+            (1 9 9 2)
+
+        );
+    }
+    wall
+    {
+        type wall;
+        faces
+        (
+            (5 4 0 1)
+            (1 0 3 2)
+
+        );
+    }
+    symmetry
+    {
+        type empty;
+        faces
+        (
+            (4 5 9 8)
+            (8 9 2 3)
+        );
+    }
+);
+
+mergePatchPairs
+(
+
+);
+
+// ************************************************************************* //
